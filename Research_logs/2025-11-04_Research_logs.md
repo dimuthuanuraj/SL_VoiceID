@@ -29,3 +29,39 @@ The environment also has all the required supporting packages for the Firebase a
 - grpcio, protobuf, and other necessary dependencies
 
 **Status**: 🟢 The sl-voiceid environment is fully configured according to the environment.yml specifications. All required packages are installed and ready to use.
+
+---
+
+## Security Fix - Critical Issue #1 (06:15 IST)
+
+### 🔒 Fixed: Exposed Credentials in .env file
+
+**Issue Identified:**
+- `.env` file contained sensitive credentials (private keys, API keys) and was tracked by git
+- Risk: Credentials exposed in repository history and remote repository
+
+**Actions Taken:**
+1. ✅ Updated `.gitignore` to properly exclude all environment files:
+   - `.env`
+   - `.env*.local`
+   - `.env.production.local`
+   - Other sensitive files (.next/, build artifacts, IDE configs)
+
+2. ✅ Created `.env.example` template:
+   - Contains placeholder values for all required environment variables
+   - Safe to commit to repository
+   - Serves as documentation for required configuration
+
+3. ✅ Removed `.env` from git tracking:
+   - Used `git rm --cached .env` to stop tracking
+   - Local `.env` file preserved with actual credentials
+   - File will not be pushed to remote repository
+
+4. ✅ Committed changes with security-focused commit message
+
+**Status:** 🔒 **FIXED** - Sensitive credentials are no longer tracked by git
+
+**Next Steps:**
+- ⚠️ **IMPORTANT**: Anyone cloning this repository must create their own `.env` file using `.env.example` as template
+- Consider rotating the exposed credentials (private keys, API keys) since they were previously in the repository
+- Review git history to ensure no other sensitive data is committed
