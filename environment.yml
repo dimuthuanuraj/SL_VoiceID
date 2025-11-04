@@ -1,0 +1,27 @@
+name: sl-voiceid
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Node.js and npm (npm comes bundled with nodejs)
+  - nodejs=18
+  
+  # Python (for any potential backend scripts or tools)
+  - python=3.11
+  - pip
+  
+  # Build tools
+  - git
+  - make
+  - gcc_linux-64
+  
+  # Optional: Useful development tools
+  - curl
+  - wget
+  
+  # Python packages via pip (if needed for tooling)
+  - pip:
+    - firebase-admin
+    - google-api-python-client
+    - google-auth-httplib2
+    - google-auth-oauthlib
