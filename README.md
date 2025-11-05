@@ -235,15 +235,40 @@ SL_VoiceID/
 ### Data Flow
 
 ```mermaid
-graph LR
-    A[User] -->|Records Audio| B[Audio Recorder]
-    B -->|Sends File| C[Server Action]
-    C -->|Uploads| D[Google Drive]
-    C -->|Logs Metadata| E[Google Sheets]
-    F[Gemini AI] -->|Generates| G[Reading Phrases]
-    G -->|Displays to| A
-    H[Firebase Auth] -->|Authenticates| A
-    I[Firestore] -->|Stores Profile| A
+graph TB
+    subgraph "Speaker Flow"
+        A[Speaker/User] -->|Records Audio| B[Audio Recorder Component]
+        B -->|Sends Audio File| C[Server Action]
+        C -->|Uploads File| D[Google Drive Storage]
+        C -->|Logs Metadata| E[Google Sheets]
+        F[Gemini AI] -->|Generates| G[Reading Phrases]
+        G -->|Displays to| A
+        H[Firebase Auth] -->|Authenticates| A
+        I[Firestore DB] -->|Stores/Retrieves Profile| A
+    end
+    
+    subgraph "Admin Flow"
+        J[Administrator] -->|Accesses| K[Admin Dashboard]
+        K -->|Queries| I
+        K -->|Fetches Metadata| E
+        K -->|Lists Files| D
+        D -->|Downloads Audio| K
+        E -->|Exports Data| K
+        K -->|Visualizes Stats| J
+        K -->|Manages Users| I
+    end
+    
+    subgraph "Data Storage"
+        D[Google Drive Storage]
+        E[Google Sheets Metadata]
+        I[Firestore Database]
+    end
+    
+    style A fill:#e1f5ff
+    style J fill:#fff3e0
+    style D fill:#e8f5e9
+    style E fill:#e8f5e9
+    style I fill:#e8f5e9
 ```
 
 ---
