@@ -98,29 +98,38 @@ export function AudioRecorder({ userProfile, sessionLanguage }: AudioRecorderPro
   }, [userProfile, sessionLanguage, currentPhraseIndex, currentPhrase, recordingStatus]);
 
 
+  // Cleanup effect: runs only on component unmount
   useEffect(() => {
     return () => {
+      // Clear recording interval if active
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
       }
+      
+      // Stop media recorder if still recording
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
       }
-      if(currentPreviewAudioUrl) {
+      
+      // Revoke current preview blob URL to prevent memory leak
+      if (currentPreviewAudioUrl) {
         URL.revokeObjectURL(currentPreviewAudioUrl);
       }
+      
+      // Revoke all recorded sample blob URLs to prevent memory leaks
       recordedSamplesInfo.forEach(sample => {
-        if(sample.localAudioUrl.startsWith('blob:')){
-            URL.revokeObjectURL(sample.localAudioUrl)
+        if (sample.localAudioUrl && sample.localAudioUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(sample.localAudioUrl);
         }
       });
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPreviewAudioUrl]); 
+  }, []); // Empty dependency array - cleanup runs only on unmount 
 
 
   const startRecording = async () => {
     setErrorMessage(null);
+    
+    // Clean up previous preview URL to prevent memory leak
     if (currentPreviewAudioUrl) {
       URL.revokeObjectURL(currentPreviewAudioUrl);
       setCurrentPreviewAudioUrl(null);
@@ -241,6 +250,7 @@ export function AudioRecorder({ userProfile, sessionLanguage }: AudioRecorderPro
   };
 
   const resetCurrentRecording = () => {
+    // Clean up blob URL to prevent memory leak
     if (currentPreviewAudioUrl) {
         URL.revokeObjectURL(currentPreviewAudioUrl);
     }
@@ -253,8 +263,9 @@ export function AudioRecorder({ userProfile, sessionLanguage }: AudioRecorderPro
   };
 
   const discardAllSamplesAndRestartSession = () => {
+    // Clean up all blob URLs to prevent memory leaks
     recordedSamplesInfo.forEach(sample => {
-        if(sample.localAudioUrl.startsWith('blob:')){
+        if(sample.localAudioUrl && sample.localAudioUrl.startsWith('blob:')){
              URL.revokeObjectURL(sample.localAudioUrl);
         }
         // Note: We are not deleting from Drive here, only local session state.
@@ -293,9 +304,9 @@ export function AudioRecorder({ userProfile, sessionLanguage }: AudioRecorderPro
       variant: 'default',
     });
     
-    // Clean up local blob URLs (as they are now on Drive)
+    // Clean up all local blob URLs to prevent memory leaks (files are now on Drive)
     recordedSamplesInfo.forEach(sample => {
-        if (sample.localAudioUrl.startsWith('blob:')) {
+        if (sample.localAudioUrl && sample.localAudioUrl.startsWith('blob:')) {
             URL.revokeObjectURL(sample.localAudioUrl);
         }
     });
