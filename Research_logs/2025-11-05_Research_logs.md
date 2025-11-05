@@ -274,3 +274,166 @@ git rm --cached .env
 **Log End Time:** 06:58:46 IST  
 **Total Time Spent:** ~45 minutes  
 **Status:** ✅ Complete
+
+---
+
+## Fix #2 - Critical Issue #2 (07:25 IST)
+
+### 🔧 FIXED: 'use server' Directive Misuse
+
+**Severity:** 🟡 HIGH  
+**Date Fixed:** November 5, 2025  
+**Time:** 07:00 - 07:25 IST  
+**Issue Reference:** ANALYSIS_AND_DEPLOYMENT_GUIDE.md - Critical Issue #2
+
+---
+
+### Problem Statement
+
+**Issue Identified:**
+- Incorrect usage of `'use server'` directive causing confusion between client and server execution contexts
+- `google-drive-service.ts` had `'use server'` but was just a wrapper (didn't need it)
+- `userActions.ts` attempted to use Firebase Client SDK functions in Server Actions (incompatible)
+- Risk: Runtime errors, hydration mismatches, and incorrect execution context
+
+**Affected Files:**
+- `src/services/google-drive-service.ts` - Had unnecessary `'use server'`
+- `src/app/actions/userActions.ts` - Incorrectly mixed client SDK with server actions
+
+---
+
+### Solution Implemented
+
+#### 1. Removed 'use server' from google-drive-service.ts
+
+**File:** `src/services/google-drive-service.ts`  
+**Change:** Removed `'use server'` directive
+
+**Reasoning:**
+- This file is just a wrapper/abstraction layer
+- It imports from `google-service.ts` which correctly has `'use server'`
+- The wrapper itself doesn't need the directive
+- Added clear documentation about proper usage
+
+**Before:**
+```typescript
+'use server';
+/**
+ * @fileOverview Service layer that acts as a bridge...
+ */
+```
+
+**After:**
+```typescript
+/**
+ * @fileOverview Service layer that acts as a bridge to the main Google API service.
+ * 
+ * NOTE: These functions call server-side Google APIs. They should only be used from Server Actions.
+ * For client components, use the Server Actions in /app/actions/audioDriveActions.ts
+ */
+```
+
+---
+
+#### 2. Deleted Problematic userActions.ts
+
+**File:** `src/app/actions/userActions.ts`  
+**Action:** Deleted entirely
+
+**Reasoning:**
+- This file attempted to wrap `user-service.ts` functions with Server Actions
+- Problem: `user-service.ts` uses Firebase CLIENT SDK, which doesn't work in Server Actions
+- Firebase Client SDK is meant to run in the browser, not on the server
+- The client SDK is already properly used in `auth-context.tsx` (marked with `'use client'`)
+
+**Why This Approach:**
+- User management (authentication, profiles) is handled client-side using Firebase Auth SDK
+- This is the correct pattern for Firebase authentication
+- Server-side user operations would require Firebase Admin SDK (different setup)
+- Current application doesn't need server-side user operations
+
+---
+
+### Correct Architecture Established
+
+#### ✅ Client-Side (Browser):
+- **`user-service.ts`**: Uses Firebase Client SDK ✅ NO 'use server'
+- **`auth-context.tsx`**: Uses client SDK ✅ Marked with 'use client'
+- **Firebase Auth**: Handled in browser ✅
+
+#### ✅ Server-Side (Node.js):
+- **`google-service.ts`**: Uses googleapis (Node.js) ✅ HAS 'use server'
+- **`audioDriveActions.ts`**: Server Actions ✅ HAS 'use server'
+- **Google Drive/Sheets**: Server-only operations ✅
+
+#### ✅ Wrapper Layer:
+- **`google-drive-service.ts`**: Abstraction layer ✅ NO 'use server' (calls google-service)
+
+---
+
+### Verification Steps
+
+#### ✅ Checks Completed:
+
+1. **Confirmed Service Architecture:**
+   - Client services (Firebase Auth) stay client-side
+   - Server services (Google APIs) stay server-side
+   - No mixing of incompatible SDKs
+
+2. **Verified Directive Usage:**
+   - `'use server'` only in actual Server Actions and Node.js API calls
+   - Client SDK files have no `'use server'`
+   - Wrapper layers don't need `'use server'`
+
+3. **Tested Call Chain:**
+   - Client components → Server Actions → Google Service (correct ✅)
+   - Client components → User Service (direct client-side call correct ✅)
+
+---
+
+### Current Status
+
+**Status:** 🟢 **FIXED AND VERIFIED**
+
+**Architecture Clarity:**
+- ✅ Clear separation between client and server code
+- ✅ Proper use of 'use server' directive
+- ✅ No SDK mixing issues
+- ✅ Documentation added for clarity
+
+---
+
+### Files Modified
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `src/services/google-drive-service.ts` | Removed 'use server' | Wrapper doesn't need directive |
+| `src/app/actions/userActions.ts` | Deleted | Incompatible SDK mixing |
+
+---
+
+### Git Commit
+
+**Commit Hash:** `d099505`  
+**Message:** "🔧 FIX: Remove incorrect 'use server' directive from google-drive-service"  
+**Status:** Pushed to remote
+
+---
+
+### Summary of Both Fixes Today
+
+1. **Fix #1 - Security (Critical)**: 
+   - ✅ Removed `.env` from git tracking
+   - ✅ Added proper `.gitignore` configuration
+   - ✅ Created `.env.example` template
+
+2. **Fix #2 - Architecture (High)**:
+   - ✅ Corrected 'use server' directive usage
+   - ✅ Removed problematic server action wrappers
+   - ✅ Clarified client/server boundaries
+
+---
+
+**Log Update Time:** 07:25 IST  
+**Total Time Spent Today:** ~90 minutes  
+**Issues Fixed:** 2/2 Critical Issues ✅
