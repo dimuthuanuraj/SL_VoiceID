@@ -1,9 +1,10 @@
-
-'use server';
 /**
  * @fileOverview Service layer that acts as a bridge to the main Google API service.
  * This file provides an abstraction layer, so if the underlying Google service changes,
  * we only need to update this file and not all the components that use it.
+ * 
+ * NOTE: These functions call server-side Google APIs. They should only be used from Server Actions.
+ * For client components, use the Server Actions in /app/actions/audioDriveActions.ts
  */
 
 import {
